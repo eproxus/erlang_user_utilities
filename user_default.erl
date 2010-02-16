@@ -1,8 +1,6 @@
 -module(user_default).
 
--export([sync/0]).
--export([make/0]).
--export([git/1]).
+-export ([sync/0,make/0,git/1,reload/0,reload_then/1]).
 
 -export([dbg/0]).
 -export([dbg/1]).
@@ -11,6 +9,17 @@
 -export([dbg/4]).
 
 -compile(inline).
+
+%% Reload code
+reload() ->
+	LibExclude = base_lib_path(),
+	Modules = [M || {M, P} <- code:all_loaded(), is_list(P) andalso string:str(P, LibExclude) =:= 0],
+	[shell_default:l(M) || M <- Modules].
+
+%% Reload code then exec F
+reload_then(F) ->
+	reload(),
+	F().
 
 %% Compiles all files in Emakefile and load into current shell.
 sync() ->
@@ -60,3 +69,7 @@ dbgc(MFA)    -> dbg:ctp(MFA).
 dbge(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tp(MFA, O).
 dbgl(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tpl(MFA, O).
 dbg_rt() -> [{'_',[],[{return_trace}]}].
+
+base_lib_path() ->
+	KernAppPath = code:where_is_file("kernel.app"),
+	string:substr(KernAppPath, 1, string:str(KernAppPath,"kernel") - 1).
