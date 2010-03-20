@@ -20,9 +20,10 @@ Debugger helper functions:
 The options for debugging are:
 
     c                   %   clear
-    r                   %   show return trace
+    r                   %   show return trace (including exceptions).
     l                   %   trace on local functions
-    lr                  %   trace on local functions with return trace
+    lr                  %   trace on local functions with return trace 
+                        %     (including expections)
 
 Add the following to ~/.erlang to enable them:
 

@@ -43,15 +43,15 @@ dbg(M, c)                       -> dbgc({M, '_', '_'});
 dbg(M, r)                       -> dbge({M, '_', '_'}, dbg_rt());
 dbg(M, l)                       -> dbgl({M, '_', '_'}, []);
 dbg(M, lr)                      -> dbgl({M, '_', '_'}, dbg_rt());
-dbg(M, O) when is_list(O)       -> dbge({M, '_', '_'}, O);
-dbg(M, F) when is_atom(F)       -> dbge({M,   F, '_'}, []).
+dbg(M, F) when is_atom(F)       -> dbge({M,   F, '_'}, []);
+dbg(M, O)                       -> dbge({M, '_', '_'}, O).
 
 dbg(M, F, c)                    -> dbgc({M,   F, '_'});
 dbg(M, F, l)                    -> dbgl({M,   F, '_'}, dbg_rt());
 dbg(M, F, r)                    -> dbge({M,   F, '_'}, dbg_rt());
 dbg(M, F, lr)                   -> dbgl({M,   F, '_'}, dbg_rt());
-dbg(M, F, O) when is_list(O)    -> dbge({M,   F, '_'}, O);
-dbg(M, F, A) when is_integer(A) -> dbge({M,   F,   A}, []).
+dbg(M, F, A) when is_integer(A) -> dbge({M,   F,   A}, []);
+dbg(M, F, O)                    -> dbge({M,   F, '_'}, O).
 
 dbg(M, F, A, c)                 -> dbgc({M,   F,   A});
 dbg(M, F, A, r)                 -> dbge({M,   F,   A}, dbg_rt());
@@ -68,7 +68,7 @@ run_command(CommandList) ->
 dbgc(MFA)    -> dbg:ctp(MFA).
 dbge(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tp(MFA, O).
 dbgl(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tpl(MFA, O).
-dbg_rt() -> [{'_',[],[{return_trace}]}].
+dbg_rt() -> x.
 
 base_lib_path() ->
 	KernAppPath = code:where_is_file("kernel.app"),
