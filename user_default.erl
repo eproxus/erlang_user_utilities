@@ -1,12 +1,18 @@
 -module(user_default).
 
--export ([sync/0,make/0,git/1,reload/0,reload_then/1]).
+-export([sync/0]).
+-export([make/0]).
+-export([git/1]).
+-export([reload/0]).
+-export([reload_then/1]).
 
 -export([dbg/0]).
 -export([dbg/1]).
 -export([dbg/2]).
 -export([dbg/3]).
 -export([dbg/4]).
+
+-export([tc_avg/4]).
 
 -compile(inline).
 
@@ -58,6 +64,27 @@ dbg(M, F, A, r)                 -> dbge({M,   F,   A}, dbg_rt());
 dbg(M, F, A, l)                 -> dbgl({M,   F,   A}, dbg_rt());
 dbg(M, F, A, lr)                -> dbgl({M,   F,   A}, dbg_rt());
 dbg(M, F, A, O)                 -> dbge({M,   F,   A}, O).
+
+tc_avg(M, F, A, N) when N > 1 ->
+    L = tl(lists:reverse(tc_loop(M, F, A, N, []))),
+    Length = length(L),
+    Min = lists:min(L),
+    Max = lists:max(L),
+    Med = lists:nth(round((Length / 2)), lists:sort(L)),
+    Avg = round(lists:foldl(fun(X, Sum) -> X + Sum end, 0, L) / Length),
+    io:format("Range: ~b - ~b mics~n"
+              "Median: ~b mics~n"
+              "Average: ~b mics~n",
+              [Min, Max, Med, Avg]),
+    Med.
+
+tc_loop(_M, _F, _A, 0, List) ->
+    List;
+tc_loop(M, F, A, N, List) ->
+    case timer:tc(M, F, A) of
+        {_T, {'EXIT', Reason}} -> exit(Reason);
+        {T, _Result} -> tc_loop(M, F, A, N - 1, [T|List])
+    end.
 
 %%%% Private Functions
 

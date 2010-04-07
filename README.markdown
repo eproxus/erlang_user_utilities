@@ -1,13 +1,18 @@
 A collection of handy user utilities for the Erlang shell. Read [this blog post](http://medevyoujane.com/blog/2010/1/3/erlang-quick-tip-the-user_default-module.html) for background.
 
-    sync()              %   compiles all files in Emakefile and load into current shell
+    sync()              %   compiles all files in Emakefile and load into
+                        %     current shell
     reload()            %   reload loaded modules
     reload_then(Fun)    %   reload then exec a function
     git(String)         %   run git command
+    tc_avg(M, F, A, N)  %   run timer:tc(M, F, A) N times and return range,
+                        %     average and median results skipping the first
+                        %     run.
 
 Debugger helper functions:
 
-    dbg()               %   start the debugger (done automatically for all calls)
+    dbg()               %   start the debugger (done automatically for all
+                        %     calls)
     dbg(c)              %   clear all traces
 
     dbg(M)              %   trace on module M
