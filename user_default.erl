@@ -18,7 +18,7 @@
 
 reload() ->
 	Lib = code:lib_dir(),
-	[begin shell_default:l(M), M end || {M, P} <- code:all_loaded(),
+	[load(M) || {M, P} <- code:all_loaded(),
         is_list(P),        % Filter out 'preloaded' atoms
         is_prefix(Lib, P), % Is in lib dir?
         is_modified(M)     % Is it modified?
@@ -88,8 +88,19 @@ is_modified(Module) ->
     Time = {{Y, M, D}, {H, Mm, S}},
     Source = proplists:get_value(source, Compile),
     case file:read_file_info(Source) of
-        {ok, Info} ->
+        {ok, Info} when Info#file_info.type == regular ->
             Info#file_info.mtime > calendar:universal_time_to_local_time(Time);
         _ ->
             false
+    end.
+
+load(Module) ->
+    case code:which(Module) of
+        Path when is_list(Path) ->
+            true = code:soft_purge(Module),
+            File = string:sub_string(Path, 1, length(Path) - 5),
+            {module, Module} = code:load_abs(File),
+            Module;
+        Other ->
+            {not_loaded, Module, Other}
     end.
