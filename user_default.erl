@@ -1,10 +1,6 @@
 -module(user_default).
 
--export([sync/0]).
--export([make/0]).
--export([git/1]).
 -export([reload/0]).
--export([reload_then/1]).
 
 -export([dbg/0]).
 -export([dbg/1]).
@@ -21,24 +17,6 @@ reload() ->
 	LibExclude = base_lib_path(),
 	Modules = [M || {M, P} <- code:all_loaded(), is_list(P) andalso string:str(P, LibExclude) =:= 0],
 	[shell_default:l(M) || M <- Modules].
-
-%% Reload code then exec F
-reload_then(F) ->
-	reload(),
-	F().
-
-%% Compiles all files in Emakefile and load into current shell.
-sync() ->
-	make:all([load]).
-
-%% Run the make command in shell.
-make() ->
-	run_command(["make", "all"]).
-
-%% Run git command in shell.
-git(Command) ->
-	CommandList = ["git", Command],
-	run_command(CommandList).
 
 dbg()                           -> dbg:tracer().
 
