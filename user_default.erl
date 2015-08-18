@@ -1,5 +1,7 @@
 -module(user_default).
 
+-include_lib("kernel/include/file.hrl").
+
 -export([reload/0]).
 
 -export([dbg/0]).
@@ -12,12 +14,17 @@
 
 -compile(inline).
 
-%% Reload code
-reload() ->
-	LibExclude = base_lib_path(),
-	Modules = [M || {M, P} <- code:all_loaded(), is_list(P) andalso string:str(P, LibExclude) =:= 0],
-	[shell_default:l(M) || M <- Modules].
+%--- Code Reload --------------------------------------------------------------
 
+reload() ->
+	Lib = code:lib_dir(),
+	[begin shell_default:l(M), M end || {M, P} <- code:all_loaded(),
+        is_list(P),        % Filter out 'preloaded' atoms
+        is_prefix(Lib, P), % Is in lib dir?
+        is_modified(M)     % Is it modified?
+    ].
+
+%--- Debugging ----------------------------------------------------------------
 dbg()                           -> dbg:tracer().
 
 dbg(c)                          -> dbg:stop_clear();
@@ -43,6 +50,8 @@ dbg(M, F, A, l)                 -> dbgl({M,   F,   A}, dbg_rt());
 dbg(M, F, A, lr)                -> dbgl({M,   F,   A}, dbg_rt());
 dbg(M, F, A, O)                 -> dbge({M,   F,   A}, O).
 
+%--- Benchmarking -------------------------------------------------------------
+
 tc_avg(M, F, A, N) when N > 1 ->
     L = tl(lists:reverse(tc_loop(M, F, A, N, []))),
     Length = length(L),
@@ -56,6 +65,8 @@ tc_avg(M, F, A, N) when N > 1 ->
               [Min, Max, Med, Avg]),
     Med.
 
+%--- Private ------------------------------------------------------------------
+
 tc_loop(_M, _F, _A, 0, List) ->
     List;
 tc_loop(M, F, A, N, List) ->
@@ -64,17 +75,21 @@ tc_loop(M, F, A, N, List) ->
         {T, _Result} -> tc_loop(M, F, A, N - 1, [T|List])
     end.
 
-%%%% Private Functions
-
-run_command(CommandList) ->
-	Result = os:cmd(string:join(CommandList, " ")),
-	io:format("~s~n", [Result]).
-
 dbgc(MFA)    -> dbg:ctp(MFA).
 dbge(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tp(MFA, O).
 dbgl(MFA, O) -> dbg:tracer(), dbg:p(all, call), dbg:tpl(MFA, O).
 dbg_rt() -> x.
 
-base_lib_path() ->
-	KernAppPath = code:where_is_file("kernel.app"),
-	string:substr(KernAppPath, 1, string:str(KernAppPath,"kernel") - 1).
+is_prefix(Prefix, String) -> string:str(String, Prefix) =:= 0.
+
+is_modified(Module) ->
+    Compile = proplists:get_value(compile, Module:module_info()),
+    {Y, M, D, H, Mm, S} = proplists:get_value(time, Compile),
+    Time = {{Y, M, D}, {H, Mm, S}},
+    Source = proplists:get_value(source, Compile),
+    case file:read_file_info(Source) of
+        {ok, Info} ->
+            Info#file_info.mtime > calendar:universal_time_to_local_time(Time);
+        _ ->
+            false
+    end.
