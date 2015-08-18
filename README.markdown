@@ -1,6 +1,6 @@
 A collection of handy user utilities for the Erlang shell. Read [this blog post](http://medevyoujane.com/blog/2010/1/3/erlang-quick-tip-the-user_default-module.html) for background.
 
-    reload()            %   reload loaded modules
+    reload()            %   reload changed modules
     tc_avg(M, F, A, N)  %   run timer:tc(M, F, A) N times and return range,
                         %     average and median results skipping the first
                         %     run.
